@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><title>Invoice</title></head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+
+import { useState } from "react";
+import axios from "axios";
+
+export default function App(){
+ const [name,setName]=useState("");
+ const [items,setItems]=useState([]);
+
+ const addItem=async()=>{
+  const res=await axios.post("http://localhost:5000/api/items",{name,basePrice:100});
+  setItems([...items,res.data]);
+ }
+
+ return(
+  <div style={{padding:20}}>
+   <h1>Invoice App</h1>
+   <input onChange={e=>setName(e.target.value)} placeholder="Item"/>
+   <button onClick={addItem}>Add</button>
+   <ul>
+    {items.map(i=><li key={i._id}>{i.name}</li>)}
+   </ul>
+  </div>
+ );
+}
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+mongoose.connect("mongodb://127.0.0.1:27017/invoiceApp")
+.then(()=>console.log("DB connected"))
+.catch(err=>console.log(err));
+
+app.use("/api/items", require("./routes/itemRoutes"));
+app.use("/api/invoices", require("./routes/invoiceRoutes"));
+
+app.listen(5000, ()=>console.log("Server running"));
